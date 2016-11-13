@@ -1,46 +1,27 @@
-## Project 1 - Exploratory Data Analysis / Plot 2
-## Load any necessary libraries
-library(data.table)
-library(lubridate)
+setwd("D:\\Coursera\\ExploratoryDataAnalysis")
 
-## Load the data set into a data table
-workingDir      <- 
-    "D:\\Coursera\\ExploratoryDataAnalysis\\ExData_Plotting1-master"
-inputFile       <- 
-    "D:\\Coursera\\ExploratoryDataAnalysis\\ExData_Plotting1-master\\household_power_consumption.txt"
-setwd(workingDir)
-hshldPowerData  <-fread(inputFile)
-## Verified all rows got loaded
-## print(nrow(hshldPowerData))
+## This first line will likely take a few seconds. Be patient!
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
+str(NEI)
+str(SCC)
+unique(NEI$year)
 
-## Convert Dates and Times to Date and Time object vectors
-dateTimeVector  <- 
-    with(hshldPowerData, strptime(paste(Date, Time, sep=":"),
-                                  format="%d/%m/%Y:%H:%M:%S"))
-
-## Remove the character Date and Time columns and replace with dateTimeVector
-hshldPowerData  <- hshldPowerData[,Date := NULL]
-hshldPowerData  <- hshldPowerData[,Time := NULL]
-hshldPowerData  <- cbind(Date_Time=dateTimeVector,hshldPowerData)
-#head(hshldPowerData)
-
-## Generate the subset of data from which the graphs will be generated
-graphData       <- 
-    subset(hshldPowerData, 
-              Date_Time >= ymd("2007-02-01") & 
-              Date_Time < ymd("2007-02-03"))
-## Open the png device/file
-png(filename = "plot2.png",
-    width = 480, height = 480, units = "px",
+## Problem 2
+library(dplyr)
+fips2Test <- c("24510")
+fips4NEI <- subset(NEI,NEI$fips %in% fips2Test)
+typeof(fips4NEI)
+str(fips4NEI)
+unique(fips4NEI$fips)
+unique(fips4NEI$year)
+groupP25    <- 
+    group_by(fips4NEI, year)
+sumP25=summarize(groupP25,Total_Emissions=sum(Emissions,na.rm=TRUE))
+yr=unique(sumP25$year)
+fileName="plot2.png"
+png(filename = fileName,
+    width = 480, height = 480, units = "px", pointsize = 12,
     bg = "white")
-## Create the base plot
-plot( graphData$Date_Time
-     ,as.numeric(graphData$Global_active_power)
-     ,col="black"
-     ,xlab=""
-     ,ylab="Global Active Power (kilowatts)"
-     ,type = "l" )
-## close the device
+plot(yr,sumP25$Total_Emissions,pch=19,xlab="Year",ylab="Total Emissions")
 dev.off()
-     
-     
